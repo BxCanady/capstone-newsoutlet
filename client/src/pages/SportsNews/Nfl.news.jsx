@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useQuery } from 'react-query';
-// import NflCard from './NflCard.jsx'; // Commented out temporary
+
+// Use Vite's environment variable handling
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
 const fetchFootballArticles = async () => {
-    const { data } = await axios.get("http://localhost:3001/api/sportsNews/football");
+    const { data } = await axios.get(`${API_BASE_URL}/api/sportsNews/football`);
     return data;
 };
 
@@ -73,11 +75,6 @@ const FootballArticles = () => {
             ) : (
                 <p>No articles found.</p>
             )}
-            {/* Commented out for now
-            <div id="nflCard">
-                <NflCard />
-            </div>
-            */}
         </div>
     );
 };

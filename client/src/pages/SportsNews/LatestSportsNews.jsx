@@ -3,8 +3,13 @@ import axios from 'axios';
 import { useQuery } from 'react-query';
 
 const fetchSportsNews = async () => {
-    const response = await axios.get('http://localhost:3001/api/sportsNews');
-    return response.data;
+    try {
+        const baseUrl = process.env.NODE_ENV === 'production' ? 'https://your-production-api-url.com' : 'http://localhost:3001';
+        const response = await axios.get(`${baseUrl}/api/sportsNews`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
 };
 
 const LatestSportsNews = () => {

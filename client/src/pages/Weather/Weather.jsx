@@ -1,99 +1,76 @@
 import React, { useEffect, useState } from "react"
-import "./Weather.css"
-// import axios from "axios"
-import axios from "axios"
-import { WEATHER_API_KEY } from "../../configs/constants"
-import clear from "../../components/images/clear.png"
-import clouds from "../../components/images/clouds.png"
-import drizzle from "../../components/images/drizzle.png"
-import humidity from "../../components/images/humidity.png"
-import mist from "../../components/images/mist.png"
-import rain from "../../components/images/rain.png"
-import search from "../../components/images/search.png"
-import snow from "../../components/images/snow.png"
-import wind from "../../components/images/wind.png"
 
-// As a user, I want to be able to check for local weather
-// As a user, I want to be able to check the weather of another location using a zip code
-// As a user, I want to be able to save my location so weather is automatically displayed during my session
+import "./Weather.css";
+import axios from "axios";
+import { WEATHER_API_KEY } from "../../configs/constants";
+import clear from "../../components/images/clear.png";
+import clouds from "../../components/images/clouds.png";
+import drizzle from "../../components/images/drizzle.png";
+import humidity from "../../components/images/humidity.png";
+import mist from "../../components/images/mist.png";
+import rain from "../../components/images/rain.png";
+import search from "../../components/images/search.png";
+import snow from "../../components/images/snow.png";
+import wind from "../../components/images/wind.png";
 
 const Weather = () => {
-  const [data, setData] = useState({})
-  const [location, setLocation] = useState("")
-  const [currentLocation, setCurrentLocation] = useState({})
+  const [data, setData] = useState({});
+  const [location, setLocation] = useState("");
 
-  // const geoLocationAPI_key = `bfdf72489b14421ca50d45c76c24e1af`
+  const API_BASE_URL = import.meta.env.VITE_WEATHER_API_BASE_URL || 'http://api.openweathermap.org';
+  const GEOLOCATION_API_BASE_URL = import.meta.env.VITE_GEOLOCATION_API_BASE_URL || 'https://api.opencagedata.com';
 
-  // const api_key = "ad60d9877bba5e3a05f21f39c17485e3"
-  // location: {city name}
-  const api_url = `https://api.openweathermap.org/data/2.5/weather?q=${location},us&units=imperial&appid=ad60d9877bba5e3a05f21f39c17485e3`
-  
+  const getWeatherApiUrl = (location) =>
+    `${API_BASE_URL}/data/2.5/weather?q=${location},us&units=imperial&appid=${WEATHER_API_KEY}`;
 
-  const getApiUrlWithLatLong = (lat, long) => `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&units=imperial&appid=ad60d9877bba5e3a05f21f39c17485e3`
+  const getWeatherApiUrlWithLatLong = (lat, long) =>
+    `${API_BASE_URL}/data/2.5/weather?lat=${lat}&lon=${long}&units=imperial&appid=${WEATHER_API_KEY}`;
 
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
-        const latitude = position.coords.latitude
-        const longitude = position.coords.longitude
-        const geoLocationAPI_url = `https:api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=bfdf72489b14421ca50d45c76c24e1af`
-        const url = getApiUrlWithLatLong(latitude, longitude);
-        // axios
-        //   .get(geoLocationAPI_url)
-        //   .then((res) => {
-        //     // setData(res.data)
-        //     console.log(res.data)
-        //     setLocation(res.data.results[0]?.components?.postcode);
-        //     setCurrentLocation(res.data.results[0]?.geometry);
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        const geoLocationAPIUrl = `${GEOLOCATION_API_BASE_URL}/geocode/v1/json?q=${latitude}+${longitude}&key=${WEATHER_API_KEY}`;
+        const url = getWeatherApiUrlWithLatLong(latitude, longitude);
+
         axios.get(url)
-          // })
           .then((res) => {
-            setData(res.data)
-            console.log(res.data)
+            setData(res.data);
           })
           .catch((err) => {
-            console.log(err)
-            console.error("Error getting data")
-          })
-      })
+            console.error("Error getting weather data", err);
+          });
+      });
     }
-  }, [])
+  }, []);
 
   const handleSearchInput = (event) => {
-    event.preventDefault()
-    axios
-      .get(api_url)
+    event.preventDefault();
+    const url = getWeatherApiUrl(location);
+
+    axios.get(url)
       .then((res) => {
-        setData(res.data)
-        console.log(res.data)
+        setData(res.data);
       })
       .catch((err) => {
-        console.error("Error getting data")
-      })
+        console.error("Error getting weather data", err);
+      });
 
-    setLocation("")
-  }
+    setLocation("");
+  };
 
   const getForecastImage = (weather) => {
-    if (weather === "Drizzle") {
-      return drizzle
+    switch (weather) {
+      case "Drizzle": return drizzle;
+      case "Clouds": return clouds;
+      case "Clear": return clear;
+      case "Snow": return snow;
+      case "Rain": return rain;
+      case "Mist": return mist;
+      default: return clear;
     }
-    if (weather === "Clouds") {
-      return clouds
-    }
-    if (weather === "Clear") {
-      return clear
-    }
-    if (weather === "Snow") {
-      return snow
-    }
-    if (weather === "Rain") {
-      return rain
-    }
-    if (weather === "Mist") {
-      return mist
-    }
-  }
+  };
 
   return (
     <div className="weather-container">

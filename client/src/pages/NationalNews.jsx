@@ -1,36 +1,41 @@
 import React, { useState, useEffect } from "react";
+
 const NationalNews = () => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userCountryCode, setUserCountryCode] = useState("");
+  const [linkCopiedState, setLinkCopiedState] = useState({});
+
+  // Use Vite's environment variable handling
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
   const fetchArticles = async (countryCode) => {
-    const apiKey = "8cc2063285f3470b96ff200384478e9b";
-    const apiUrl = `https://newsapi.org/v2/top-headlines?apiKey=${apiKey}&country=${countryCode}&pageSize=5`;
     setLoading(true);
+
     try {
       const storedData = localStorage.getItem(`nationalNews_${countryCode}`);
       if (storedData) {
         setArticles(JSON.parse(storedData));
-        setLoading(false);
       } else {
-        const response = await fetch(apiUrl);
+        const response = await fetch(`${API_BASE_URL}/api/national-news/${countryCode}`);
+
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
+
         const data = await response.json();
-        setArticles(data.articles || []);
-        localStorage.setItem(
-          `nationalNews_${countryCode}`,
-          JSON.stringify(data.articles)
-        );
+        const newArticles = data.articles || [];
+
+        setArticles(newArticles);
+        localStorage.setItem(`nationalNews_${countryCode}`, JSON.stringify(newArticles));
       }
     } catch (error) {
-      console.error("Error fetching articles:", error);
-      setLoading(false);
+      console.error("Error fetching national news:", error);
     } finally {
       setLoading(false);
     }
   };
+
   const handleCountryCodeChange = (event) => {
     setUserCountryCode(event.target.value);
   };
@@ -61,21 +66,15 @@ const NationalNews = () => {
 
   const defaultImageUrl = "src/components/images/defaultNewsImage.jpg";
 
-  const filteredArticles = articles.filter(
-    (article) => article.title !== "[Removed]"
-  );
+  const filteredArticles = articles.filter(article => article.title !== "[Removed]");
 
   return (
     <div className="newsFeed">
-      <h4 className="pageTitle"></h4>
+      <h4 className="pageTitle">National News</h4>
       <div className="countryCode">
         <label className="inputLabel">
-          Enter Country Code: ("Example: us"){" "}
-          <input
-            type="text"
-            value={userCountryCode}
-            onChange={handleCountryCodeChange}
-          />
+          Enter Country Code: ("Example: us")
+          <input type="text" value={userCountryCode} onChange={handleCountryCodeChange} />
         </label>
         <button onClick={handleFetchNews}>Fetch News</button>
       </div>
@@ -88,11 +87,7 @@ const NationalNews = () => {
               <h4>{article.title}</h4>
               {article.urlToImage && (
                 <div className="imageDiv">
-                  <img
-                    className="image"
-                    src={article.urlToImage}
-                    alt="Article"
-                  />
+                  <img className="image" src={article.urlToImage} alt="Article" />
                 </div>
               )}
               {!article.urlToImage && (
@@ -107,20 +102,11 @@ const NationalNews = () => {
               {article.url && (
                 <div>
                   <p className="article-link">
-                    <a
-                      className="readMore"
-                      href={article.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                    <a className="readMore" href={article.url} target="_blank" rel="noopener noreferrer">
                       Read More
                     </a>
                   </p>
-                  <button
-                    className="copyLinkButton"
-                    onClick={() => handleCopyToClipboard(article.url, index)}
-                    disabled={linkCopiedState[index]}
-                  >
+                  <button className="copyLinkButton" onClick={() => handleCopyToClipboard(article.url, index)} disabled={linkCopiedState[index]}>
                     {linkCopiedState[index] ? "Link Copied!" : "Copy Link"}
                   </button>
                 </div>

@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useQuery } from 'react-query';
 
+// Use Vite's environment variable handling
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 const fetchMlbArticles = async () => {
-    const response = await axios.get('http://localhost:3001/api/sportsNews/baseball');
+    const response = await axios.get(`${API_BASE_URL}/api/sportsNews/baseball`);
     return response.data;
 };
 
 const MlbNews = () => {
-
     const { data: articles, isLoading, error } = useQuery('mlbNews', fetchMlbArticles);
     const [linkCopiedState, setLinkCopiedState] = useState({});
 

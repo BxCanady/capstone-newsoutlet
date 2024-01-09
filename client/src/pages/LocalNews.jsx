@@ -1,42 +1,48 @@
 import React, { useState, useEffect } from "react";
+
 const LocalNews = () => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const userCountryCode = "us";
+  const [linkCopiedState, setLinkCopiedState] = useState({});
+
+
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
   const fetchLocalNews = async (countryCode) => {
-    const apiKey = "8cc2063285f3470b96ff200384478e9b";
+    setLoading(true);
+
     try {
       const storedData = localStorage.getItem(`localNews_${countryCode}`);
       if (storedData) {
         setArticles(JSON.parse(storedData));
-        setLoading(false);
       } else {
-        const apiUrl = `https://newsapi.org/v2/top-headlines?apiKey=${apiKey}&country=${countryCode}&pageSize=5`;
-        const response = await fetch(apiUrl);
+        const response = await fetch(`${API_BASE_URL}/api/local-news/${countryCode}`);
+
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
+
         const data = await response.json();
-        setArticles(data.articles || []);
-        localStorage.setItem(
-          `localNews_${countryCode}`,
-          JSON.stringify(data.articles)
-        );
+        const newArticles = data.articles || [];
+
+        setArticles(newArticles);
+        localStorage.setItem(`localNews_${countryCode}`, JSON.stringify(newArticles));
       }
     } catch (error) {
       console.error("Error fetching local news:", error);
+    } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchLocalNews(userCountryCode);
   }, [userCountryCode]);
 
   const defaultImageUrl = "src/components/images/defaultNewsImage.jpg";
 
-  const filteredArticles = articles.filter(
-    (article) => article.title !== "[Removed]"
-  );
+  const filteredArticles = articles.filter(article => article.title !== "[Removed]");
 
   const handleCopyToClipboard = (url, index) => {
     navigator.clipboard.writeText(url).then(() => {
@@ -65,11 +71,7 @@ const LocalNews = () => {
               <h4>{article.title}</h4>
               {article.urlToImage && (
                 <div className="imageDiv">
-                  <img
-                    className="image"
-                    src={article.urlToImage}
-                    alt="Article"
-                  />
+                  <img className="image" src={article.urlToImage} alt="Article" />
                 </div>
               )}
               {!article.urlToImage && (
@@ -84,20 +86,11 @@ const LocalNews = () => {
               {article.url && (
                 <div>
                   <p className="article-link">
-                    <a
-                      className="readMore"
-                      href={article.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                    <a className="readMore" href={article.url} target="_blank" rel="noopener noreferrer">
                       Read More
                     </a>
                   </p>
-                  <button
-                    className="copyLinkButton"
-                    onClick={() => handleCopyToClipboard(article.url, index)}
-                    disabled={linkCopiedState[index]}
-                  >
+                  <button className="copyLinkButton" onClick={() => handleCopyToClipboard(article.url, index)} disabled={linkCopiedState[index]}>
                     {linkCopiedState[index] ? "Link Copied!" : "Copy Link"}
                   </button>
                 </div>
